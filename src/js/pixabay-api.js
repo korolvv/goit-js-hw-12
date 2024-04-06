@@ -23,7 +23,8 @@ const getQuery = async (request, page) => {
 function useApi(request, userList, loader, loadMore, page) {
   getQuery(request, page)
     .then(data => {
-      if (data.total === 0) {
+      const { total, totalHits, hits } = data;
+      if (total === 0) {
         loader.classList.add('hidden');
         loadMore.classList.add('hidden');
         iziToast.error({
@@ -32,19 +33,41 @@ function useApi(request, userList, loader, loadMore, page) {
             'Sorry, there are no images matching your search query. Please try again!',
         });
       } else {
-        const pictures = data.hits;
+        const pictures = hits;
         const item = renderItem(pictures);
         userList.insertAdjacentHTML('beforeend', item);
         const lightbox = new SimpleLightbox('.userItem a');
         loader.classList.add('hidden');
-        loadMore.classList.remove('hidden');
+        if (15 * page > totalHits) {
+          iziToast.error({
+            position: 'topRight',
+            message:
+              "We're sorry, but you've reached the end of search results.",
+          });
+          loadMore.classList.add('hidden');
+        } else {
+          loadMore.classList.remove('hidden');
+        }
         lightbox.refresh();
+        if (page > 1) {
+          smoothScroll();
+        }
       }
     })
     .catch(error => {
       loadMore.classList.add('hidden');
-      throw new Error(data.status, error);
+      throw new Error(error);
     });
+}
+
+function smoothScroll() {
+  const card = document.querySelector('.userItem');
+  const measures = card.getBoundingClientRect();
+  console.log(window.innerHeight);
+  window.scrollBy({
+    top: measures.height * 2,
+    behavior: 'smooth',
+  });
 }
 
 export default useApi;

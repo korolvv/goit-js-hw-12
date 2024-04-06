@@ -19,5 +19,10 @@ form.addEventListener('submit', e => {
 
 loadMore.addEventListener('click', () => {
   page += 1;
+  if (page === 2) {
+    userList.after(loader);
+  }
+  loader.classList.remove('hidden');
+  loadMore.classList.add('hidden');
   useApi(request, userList, loader, loadMore, page);
 });
